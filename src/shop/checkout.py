@@ -24,13 +24,42 @@ def validate_order(
     if not lines:
         return "order must contain at least one line"
 
+    seen_skus: set[str] = set()
+
     for order_line in lines:
         for key in REQUIRED_LINE_KEYS:
             if key not in order_line:
                 return f"missing required key: {key}"
 
-        if not order_line["sku"]:
+        sku = order_line["sku"]
+        if not sku:
             return "sku must not be empty"
+
+        if sku in seen_skus:
+            return "duplicate sku"
+        seen_skus.add(sku)
+
+        try:
+            qty = int(order_line["qty"])
+        except ValueError:
+            return "qty must be a whole number"
+
+        if qty <= 0:
+            return "qty must be greater than zero"
+
+        try:
+            unit_price = int(order_line["unit_price_kopecks"])
+        except ValueError:
+            return "unit price must be a whole number"
+
+        if unit_price < 0:
+            return "unit price cannot be negative"
+
+    if promo_code and promo_code not in PROMO_CODES:
+        return "unknown promo code"
+
+    if shipping_city and shipping_city not in SUPPORTED_CITIES:
+        return "unsupported shipping city"
 
     return None
 
