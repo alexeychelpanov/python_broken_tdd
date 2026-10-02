@@ -15,7 +15,7 @@ TIER_DISCOUNTS = ((10, 5), (25, 10), (50, 15))
 REQUIRED_LINE_KEYS = ("sku", "qty", "unit_price_kopecks")
 
 
-def validate_order(
+def validate_order(  # noqa: C901
     lines: list[dict[str, str]],
     promo_code: str = "",
     shipping_city: str = "",
@@ -70,4 +70,36 @@ def calculate_order_total(
     shipping_city: str = "",
 ) -> int | None:
     """Return the order total in kopecks, or None if the order is invalid."""
-    ...
+    if validate_order(lines, promo_code, shipping_city) is not None:
+        return None
+
+    subtotal = 0
+    total_qty = 0
+
+    for order_line in lines:
+        qty = int(order_line["qty"])
+        unit_price = int(order_line["unit_price_kopecks"])
+        subtotal += qty * unit_price
+        total_qty += qty
+
+    tier_discount = 0
+    for minimum_qty, discount_percent in TIER_DISCOUNTS:
+        if total_qty >= minimum_qty:
+            tier_discount = discount_percent
+
+    promo_discount = PROMO_CODES.get(promo_code, 0)
+
+    discount_percent = max(tier_discount, promo_discount)
+    discount_percent = min(discount_percent, MAX_DISCOUNT_PERCENT)
+
+    discount = subtotal * discount_percent // 100
+    discounted_subtotal = subtotal - discount
+
+    shipping = 0
+    if shipping_city and discounted_subtotal < FREE_DELIVERY_FROM_KOPEKS:
+        shipping = SHIPPING_KOPEKS
+
+    base = discounted_subtotal + shipping
+    vat = base * VAT_PERCENT // 100
+
+    return base + vat
