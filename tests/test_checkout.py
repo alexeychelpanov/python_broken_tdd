@@ -29,7 +29,9 @@ def test_smoke_single_line_without_delivery() -> None:
 
 def test_empty_order_is_rejected() -> None:
     """Spec 3, rule 1: an order without lines cannot be processed."""
-    ...
+    reason = validate_order([])
+    assert reason is not None
+    assert reason
 
 
 def test_empty_sku_is_rejected() -> None:
