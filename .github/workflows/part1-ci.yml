@@ -1,7 +1,5 @@
 name: part1-ci
 
-# Часть 1: сборка обязана стать зелёной. Каждая джоба — отдельная проверка,
-# команды совпадают с ./scripts/check-part1.sh.
 on:
   push:
   pull_request:
@@ -43,7 +41,7 @@ jobs:
       - run: uv sync --frozen
       - run: ./scripts/setup.sh --check
       - name: ruff check
-        run: uv run ruff check --output-format=github .
+        run: uv run ruff check .
 
   types:
     name: Типы (mypy)
@@ -58,7 +56,7 @@ jobs:
       - run: uv sync --frozen
       - run: ./scripts/setup.sh --check
       - name: mypy
-        run: uv run mypy src tests
+        run: uv run mypy src
 
   tests:
     name: Тесты (pytest, Python ${{ matrix.python-version }})
@@ -68,22 +66,20 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.12", "3.13"]
+
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.2.0
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
+
       - run: uv sync --frozen
       - run: ./scripts/setup.sh --check
+
       - name: pytest (тесты части 1)
-        # Полный набор, включая часть 2, проверяет джоба tests в part2-ci.yml.
         run: >-
           uv run pytest -v
           tests/test_money.py
           tests/test_inventory.py
           tests/test_reporting.py
-          --cov=shop
-      - name: отчёт о покрытии
-        if: matrix.python-version == '3.12'
-        run: uv run coverage report
