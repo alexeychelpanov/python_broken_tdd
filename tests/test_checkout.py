@@ -62,37 +62,56 @@ def test_missing_line_key_is_rejected() -> None:
 
 def test_non_numeric_quantity_is_rejected() -> None:
     """Spec 3, rule 4: `qty` must be a whole number."""
-    ...
+    reason = validate_order([line(qty="abc")])
+    assert reason is not None
+    assert reason
 
 
 def test_zero_quantity_is_rejected() -> None:
     """Spec 3, rule 5: `qty` must be greater than zero."""
-    ...
+    reason = validate_order([line(qty="0")])
+    assert reason is not None
+    assert reason
 
 
 def test_non_numeric_price_is_rejected() -> None:
     """Spec 3, rule 6: `unit_price_kopecks` must be a whole number."""
-    ...
+    reason = validate_order([line(unit_price_kopecks="abc")])
+    assert reason is not None
+    assert reason
 
 
 def test_negative_price_is_rejected() -> None:
     """Spec 3, rule 7: a price may not be negative."""
-    ...
+    reason = validate_order([line(unit_price_kopecks="-1")])
+    assert reason is not None
+    assert reason
 
 
 def test_duplicate_sku_is_rejected() -> None:
     """Spec 3, rule 8: the same article may appear only once."""
-    ...
+    reason = validate_order(
+        [
+            line(sku="SKU-1"),
+            line(sku="SKU-1"),
+        ]
+    )
+    assert reason is not None
+    assert reason
 
 
 def test_unknown_promo_code_is_rejected() -> None:
     """Spec 3, rule 9: only codes from PROMO_CODES exist."""
-    ...
+    reason = validate_order([line()], promo_code="UNKNOWN")
+    assert reason is not None
+    assert reason
 
 
 def test_unsupported_city_is_rejected() -> None:
     """Spec 3, rule 10: only cities from SUPPORTED_CITIES are served."""
-    ...
+    reason = validate_order([line()], shipping_city="unknown")
+    assert reason is not None
+    assert reason
 
 
 def test_valid_order_passes_validation() -> None:
