@@ -24,6 +24,10 @@ def validate_order(
     if not lines:
         return "order must contain at least one line"
 
+    for order_line in lines:
+        if not order_line.get("sku"):
+            return "sku must not be empty"
+
     return None
 
 
