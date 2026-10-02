@@ -16,9 +16,17 @@ Run one test at a time while you work:
 from shop.checkout import calculate_order_total, validate_order
 
 
-def line(sku: str = "SKU-1", qty: str = "1", unit_price_kopecks: str = "10000") -> dict[str, str]:
+def line(
+    sku: str = "SKU-1",
+    qty: str = "1",
+    unit_price_kopecks: str = "10000",
+) -> dict[str, str]:
     """Build one order line the way the warehouse export delivers it."""
-    return {"sku": sku, "qty": qty, "unit_price_kopecks": unit_price_kopecks}
+    return {
+        "sku": sku,
+        "qty": qty,
+        "unit_price_kopecks": unit_price_kopecks,
+    }
 
 
 def test_smoke_single_line_without_delivery() -> None:
@@ -36,7 +44,9 @@ def test_empty_order_is_rejected() -> None:
 
 def test_empty_sku_is_rejected() -> None:
     """Spec 3, rule 2: a blank article code is not allowed."""
-    ...
+    reason = validate_order([line(sku="")])
+    assert reason is not None
+    assert reason
 
 
 def test_missing_line_key_is_rejected() -> None:
